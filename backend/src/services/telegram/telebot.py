@@ -2,8 +2,6 @@ import random
 from telegram import Bot, Update
 from telegram.ext import Updater, CommandHandler, CallbackContext
 
-TOKEN = '6914100769:AAEZzLUaOy5mGPb69XFjpKAglvv1gZmTE2A'
-chat_id = None
 
 # Assuming tele_fetch is a dictionary containing moisture values
 tele_fetch = {
