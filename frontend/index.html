@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Greenhouse Digital Twin - Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="src/css/style.css">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">🌱 Greenhouse Digital Twin</a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text text-white" id="current-time"></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <!-- Sensor Cards -->
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h5>🌡️ Environment</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Temperature:</strong> <span id="temp">--</span> °C</p>
+                        <p><strong>Humidity:</strong> <span id="humidity">--</span> %</p>
+                        <p><strong>Pressure:</strong> <span id="pressure">--</span> hPa</p>
+                    </div>
+                </div>
+                
+                <div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h5>💧 Soil Moisture</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Zone 1:</strong> <span id="moisture1">--</span> %</p>
+                        <p><strong>Zone 2:</strong> <span id="moisture2">--</span> %</p>
+                        <p><strong>Zone 3:</strong> <span id="moisture3">--</span> %</p>
+                        <p><strong>Zone 4:</strong> <span id="moisture4">--</span> %</p>
+                    </div>
+                </div>
+
+                <div class="card mb-3">
+                    <div class="card-header bg-warning">
+                        <h5>🧪 NPK Values</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Nitrogen (N):</strong> <span id="npk-n">--</span></p>
+                        <p><strong>Phosphorus (P):</strong> <span id="npk-p">--</span></p>
+                        <p><strong>Potassium (K):</strong> <span id="npk-k">--</span></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Twin Visualization -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5>🗺️ Moisture Distribution Map (Digital Twin)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="twin-heatmap" style="height: 400px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls & Valves -->
+            <div class="col-md-3">
+                <div class="card mb-3">
+                    <div class="card-header bg-danger text-white">
+                        <h5>🚰 Valve Control</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="valve1">
+                            <label class="form-check-label" for="valve1">Valve 1 (Zone 1-2)</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="valve2">
+                            <label class="form-check-label" for="valve2">Valve 2 (Zone 3)</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="valve3">
+                            <label class="form-check-label" for="valve3">Valve 3 (Zone 4)</label>
+                        </div>
+                        <hr>
+                        <button class="btn btn-success w-100" id="autoMode">🤖 Auto Mode</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5>📋 System Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>MQTT:</strong> <span class="badge bg-success" id="mqtt-status">Connected</span></p>
+                        <p><strong>Mode:</strong> <span class="badge bg-primary" id="mode">Manual</span></p>
+                        <p><strong>Last Update:</strong> <span id="last-update">--</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Historical Chart -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5>📈 Moisture History (24h)</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="history-chart" style="height: 300px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="src/js/app.js"></script>
+</body>
+</html>
