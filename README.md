@@ -1,6 +1,6 @@
 # 🌱 Greenhouse Digital Twin
 
-A smart irrigation system with real-time monitoring, digital twin simulation, and automated decision-making for greenhouse management.
+A smart irrigation system with real-time monitoring, digital twin simulation, with What-if Engine to simulate scenarios without distrubing the producation.
 
 ## 📁 Project Structure
 
