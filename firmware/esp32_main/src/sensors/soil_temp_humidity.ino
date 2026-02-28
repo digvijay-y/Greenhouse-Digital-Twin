@@ -7,9 +7,13 @@
 #define DE 33
 SoftwareSerial mod(26, 27);
 
-const char* ssid = "Sonali";
-const char* password = "123456789";
-const char* mqtt_server = "192.168.137.140";
+// --- CONFIGURATION ---
+// WiFi credentials
+const char* ssid = "YOUR_WIFI_SSID";         // <-- Enter your WiFi name
+const char* password = "YOUR_WIFI_PASSWORD"; // <-- Enter your WiFi password
+
+// MQTT Broker - Get this IP from running: ./scripts/launch.sh
+const char* mqtt_server = "192.168.1.100";   // <-- Replace with IP from launch.sh
 const int mqtt_port = 1883;
 
 const byte humid[] = {0x01, 0x03, 0x00, 0x04, 0x00, 0x02, 0x64, 0x09};

@@ -13,9 +13,13 @@
 HardwareSerial mod(2);
 
 // --- CONFIGURATION ---
-const char* WIFI_SSID = "D's Galaxy";
-const char* WIFI_PASSWORD = "L1234D@07";
-const char* MQTT_BROKER_IP = "192.168.132.138";
+// WiFi credentials
+const char* WIFI_SSID = "YOUR_WIFI_SSID";         // <-- Enter your WiFi name
+const char* WIFI_PASSWORD = "YOUR_WIFI_PASSWORD"; // <-- Enter your WiFi password
+
+// MQTT Broker - Get this IP from running: ./scripts/launch.sh
+// The launch script will display the broker IP to use here
+const char* MQTT_BROKER_IP = "192.168.1.100";     // <-- Replace with IP from launch.sh
 const int MQTT_BROKER_PORT = 1883;
 const char* MQTT_CLIENT_NAME = "esp32_npk_sensor";
 const char* NPK_TOPIC = "esp32/npk";

@@ -4,9 +4,13 @@ from machine import Pin, ADC
 from umqtt.simple import MQTTClient
 
 # --- CONFIGURATION ---
-WIFI_SSID = 'YOUR_WIFI_SSID' # <-- Enter your WiFi name
-WIFI_PASS = 'YOUR_WIFI_PASSWORD' # <-- Enter your WiFi password
-MQTT_BROKER = '192.168.1.15'  # <-- Your laptop's IP address
+WIFI_SSID = 'YOUR_WIFI_SSID'      # <-- Enter your WiFi name
+WIFI_PASS = 'YOUR_WIFI_PASSWORD'  # <-- Enter your WiFi password
+
+# MQTT Broker - Get this IP from running: ./scripts/launch.sh
+# The launch script will display the broker IP to use here
+MQTT_BROKER = '192.168.1.100'     # <-- Replace with IP from launch.sh
+MQTT_PORT = 1883
 MQTT_CLIENT_ID = 'Pico2_Soil_Sensor'
 MOISTURE_TOPIC_1 = b"pico2/moisture1"
 MOISTURE_TOPIC_2 = b"pico2/moisture2"

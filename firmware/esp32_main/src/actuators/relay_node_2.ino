@@ -1,10 +1,14 @@
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 
+// --- CONFIGURATION ---
+// WiFi credentials
+const char* ssid = "YOUR_WIFI_SSID";         // <-- Enter your WiFi name
+const char* password = "YOUR_WIFI_PASSWORD"; // <-- Enter your WiFi password
 
-const char* ssid = "Sonali";
-const char* password = "123456789";
-const char* mqtt_server = "192.168.137.140";
+// MQTT Broker - Get this IP from running: ./scripts/launch.sh
+const char* mqtt_server = "192.168.1.100";   // <-- Replace with IP from launch.sh
+const int mqtt_port = 1883;
 
 const int relayPin = 14; // GPIO pin connected to the relay
 

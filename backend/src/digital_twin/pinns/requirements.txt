@@ -1,0 +1,19 @@
+# PINNs Requirements
+# Physics-Informed Neural Networks for Soil Moisture Prediction
+
+# Core
+torch>=2.0.0
+numpy>=1.24.0
+
+# Visualization (optional but recommended)
+matplotlib>=3.7.0
+
+# Data handling
+scipy>=1.10.0
+
+# Progress bars
+tqdm>=4.65.0
+
+# Jupyter support (optional)
+jupyterlab>=4.0.0
+ipywidgets>=8.0.0

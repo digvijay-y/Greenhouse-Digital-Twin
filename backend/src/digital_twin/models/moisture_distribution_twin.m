@@ -3,7 +3,7 @@ clear; clc; close all;
 
 % --- 1. Configuration ---
 % Absolute path to the database file created by the Python GUI
-dbfile = '/home/d/Documents/TIHIoTChanakya/greenhouse.db'; 
+dbfile = '/home/d/Documents/Greenhouse-Digital-Twin/frontend/python_gui/greenhouse.db'; 
 refresh_rate_sec = 5; % How often to query the database (in seconds)
 
 % --- 2. Simulation Parameters ---
