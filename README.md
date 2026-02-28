@@ -114,6 +114,7 @@ python scripts/mqtt_simulator.py --interval 3
 ```
 
 ## Architecture
+```
 ┌─────────────────────────────────────────────────────────┐
 │                   Python Application                     │
 │   (GUI / FastAPI / Data Layer)                          │
@@ -129,7 +130,7 @@ python scripts/mqtt_simulator.py --interval 3
 │  │                 │  │   - Irrigation Model        │   │
 │  └─────────────────┘  └─────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
-
+```
 
 ## 🔧 Hardware Components
 
