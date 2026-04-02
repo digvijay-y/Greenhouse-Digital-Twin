@@ -16,18 +16,6 @@ def on_disconnect(client, userdata, rc):
    flag_connected = 0
    print("Disconnected from MQTT server")
 
-def moisture_decision(moisture_value):
-    if moisture_value < 55:
-        return 1  # Solenoid valves on
-    elif 55 <= moisture_value < 60:
-        return 2  # Waiting mode
-    elif 60 <= moisture_value < 70:
-        return 3  # OK
-    elif 70 <= moisture_value < 80:
-        return 4  # Enough
-    else:
-        return 5  # Maximum
-
 fetched_values = {}  # Define this dictionary with actual values
 min_requirements = {}
 
@@ -78,10 +66,6 @@ def callback_esp32_sensor1(client, userdata, msg):
     if decoded_data:
         humidity_index = float(decoded_data)
         print("Data Recived from esp1 ",humidity_index)
-
-        valve_control = moisture_decision(humidity_index)
-        print("Valve value",valve_control)
-        client.publish("esp32/relay1",  f"1%{valve_control * 10 + 5}") #valves should on for according to  minutes
         #Humidity_excel_data(humidity_index, 1)
 
 def callback_esp32_sensor2(client, userdata, msg):
@@ -92,9 +76,6 @@ def callback_esp32_sensor2(client, userdata, msg):
         # Extract humidity and temperature values from the received data
         humidity_index = float(decoded_data)
         print("Data Recived from esp1 ",humidity_index)
-        valve_control = moisture_decision(humidity_index)
-        print("Valve value",valve_control)
-        client.publish("esp32/relay2",  f"1%{valve_control * 10 + 5}") #valves should on for according to  minutes
         #Humidity_excel_data(humidity_index, 2)
 
 def callback_esp32_sensor3(client, userdata, msg):
@@ -102,9 +83,6 @@ def callback_esp32_sensor3(client, userdata, msg):
     if decoded_data:
         humidity_reading = float(decoded_data)
         print("Data Received from esp1 ", humidity_reading)
-        valve_control = moisture_decision(humidity_reading)
-        print("Valve value", valve_control)
-        client.publish("esp32/relay3", f"1%{valve_control * 10 + 5}")  # valves should be on for according to minutes
 
 
 def callback_esp32_sensor4(client, userdata, msg):
@@ -179,7 +157,6 @@ class SmartIrrigationSystemGUI:
         self.moisture_sensor_values = [tk.DoubleVar() for _ in range(4)]
         self.npk_sensor_values = [tk.DoubleVar() for _ in range(2)]
         self.humidity_var = tk.DoubleVar()
-        self.valve_states = [tk.BooleanVar() for _ in range(3)]
 
         # GUI Components
         self.create_widgets()
@@ -209,7 +186,6 @@ class SmartIrrigationSystemGUI:
 
     def handle_sensor_data(self, data, sensor_index):
         humidity_index = float(data)
-        valve_control = moisture_decision(humidity_index)
         self.set_variable_by_index(sensor_index, humidity_index)
         self.update_values()
 

@@ -1,6 +1,5 @@
 # Core Dependencies
 paho-mqtt>=2.0.0
-python-telegram-bot>=20.0
 
 # Web Framework
 Django>=5.0

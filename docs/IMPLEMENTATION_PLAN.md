@@ -638,20 +638,8 @@ async def get_ai_recommendation():
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.post("/api/valve/{valve_id}")
-async def control_valve(valve_id: int, action: str):
-    """Control irrigation valve (publish to MQTT)."""
-    import paho.mqtt.publish as publish
-    
-    if valve_id not in [1, 2, 3]:
-        raise HTTPException(status_code=400, detail="Invalid valve ID")
-    
-    topic = f"esp32/relay{valve_id}"
-    payload = "1" if action.upper() == "ON" else "0"
-    
-    publish.single(topic, payload, hostname="localhost")
-    
-    return {"status": "success", "valve": valve_id, "action": action}
+# NOTE: Valve-control API was removed from scope.
+# The current API surface focuses on telemetry ingestion, analysis, and PINN workflows.
 
 
 if __name__ == "__main__":
@@ -892,7 +880,6 @@ frontend/src/
 ```txt
 # Existing
 paho-mqtt>=2.0.0
-python-telegram-bot>=20.0
 Django>=5.0
 openpyxl>=3.1.0
 

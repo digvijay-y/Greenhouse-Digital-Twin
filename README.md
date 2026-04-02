@@ -1,6 +1,6 @@
 # 🌱 Greenhouse Digital Twin
 
-A smart irrigation system with real-time monitoring, digital twin simulation, with What-if Engine to simulate scenarios without distrubing the producation.
+A greenhouse monitoring and digital twin platform with real-time telemetry and What-If simulation.
 
 ## 📁 Project Structure
 
@@ -9,7 +9,6 @@ Greenhouse-Digital-Twin/
 ├── firmware/                          # Microcontroller code
 │   ├── esp32_main/src/
 │   │   ├── sensors/                   # NPK, soil temp/humidity sensors
-│   │   ├── actuators/                 # Relay control for valves
 │   │   └── mqtt_client/               # MQTT communication
 │   └── sensor_nodes/pico/             # Raspberry Pi Pico sensor nodes
 │
@@ -23,7 +22,7 @@ Greenhouse-Digital-Twin/
 │   │   │   ├── models/                # Twin.m simulation model (legacy)
 │   │   │   └── pinns/                 # Physics-Informed NN model
 │   │   ├── api/                       # FastAPI/Django routes
-│   │   ├── services/                  # MQTT, Telegram bot
+│   │   ├── services/                  # MQTT services
 │   │   └── utils/                     # Helpers, simulators
 │   └── requirements.txt
 │
@@ -125,7 +124,7 @@ python scripts/mqtt_simulator.py --interval 3
 │  ┌─────────────────┐  ┌─────────────────────────────┐   │
 │  │ Laplace Solver  │  │   What-If Simulator         │   │
 │  │ (from MATLAB)   │  │   - Evaporation Model       │   │
-│  │                 │  │   - Irrigation Model        │   │
+│  │                 │  │   - Moisture Decay Trends   │   │
 │  └─────────────────┘  └─────────────────────────────┘   │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -134,10 +133,8 @@ python scripts/mqtt_simulator.py --interval 3
 
 | Component | Purpose |
 |-----------|---------|
-| ESP32 | NPK sensor, relay control |
-| ESP8266 | Solenoid valve relays |
+| ESP32 | NPK sensor + MQTT publisher |
 | Raspberry Pi Pico | Soil moisture + BME280 |
-| Solenoid Valves | Irrigation control |
 
 ## 📡 MQTT Topics
 
@@ -146,11 +143,48 @@ python scripts/mqtt_simulator.py --interval 3
 | `pico1/moisture1` | Soil moisture sensor 1 |
 | `pico1/moisture2` | Soil moisture sensor 2 |
 | `pico2/moisture1` | Soil moisture sensor 3 |
-Mo
 | `pico2/moisture2` | Soil moisture sensor 4 |
 | `pico1/bme280` | Temperature, humidity, pressure |
 | `esp32/npk` | NPK sensor values (JSON) |
-| `esp32/relay1-3` | Valve control commands |
+
+## 🗂️ Kaggle Dataset Recommendation (For Hybrid Training)
+
+If you are under a deadline, use **hybrid training** (synthetic + Kaggle) from day one.
+
+### What to download
+
+Use this Kaggle search and pick a CSV dataset focused on soil moisture time-series:
+
+https://www.kaggle.com/search?q=soil+moisture+dataset
+
+### Best-fit dataset profile
+
+Choose a dataset that has most of these columns:
+- Soil moisture: `moisture` or `soil_moisture` (required)
+- Temperature: `temperature` or `temp` (recommended)
+- Time: `timestamp`, `datetime`, or `date` (recommended)
+- Location: `x/y` or `lat/lon` (optional)
+
+The current Kaggle adapter in this repo can handle missing optional columns by filling safe defaults.
+
+### Fastest workflow
+
+1. Download one Kaggle CSV to your machine (example: `~/Downloads/soil_moisture.csv`)
+2. Run hybrid training command:
+
+```bash
+./scripts/train_pinn.sh --kaggle-csv ~/Downloads/soil_moisture.csv --kaggle-ratio 0.3
+```
+
+### Do you need Kaggle to start?
+
+No. You can start with synthetic only (no download):
+
+```bash
+./scripts/train_pinn.sh
+```
+
+Then switch to hybrid once your CSV is ready.
 
 ## 📊 Digital Twin
 
@@ -158,7 +192,7 @@ Mo
 High-performance engine with Python bindings:
 - **Laplace Solver**: 2D moisture distribution (ported from MATLAB)
 - **What-If Simulator**: Future prediction with evaporation/irrigation models
-- **10-100x faster** than pure Python implementation i.e For larger systems. for this, its overengineering
+- **10-100x faster** than pure Python implementation on larger grids/workloads
 
 ```bash
 # Build the engine
