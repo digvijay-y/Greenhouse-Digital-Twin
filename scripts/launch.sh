@@ -10,6 +10,8 @@ BACKEND_DIR="${PROJECT_ROOT}/backend"
 FRONTEND_DIR="${PROJECT_ROOT}/frontend"
 ENGINE_BUILD="${BACKEND_DIR}/src/digital_twin/engine/build"
 PYTHON_GUI="${FRONTEND_DIR}/python_gui"
+VENV_DIR="${BACKEND_DIR}/venv"
+VENV_PYTHON="${VENV_DIR}/bin/python"
 
 # Colors for output
 RED='\033[0;31m'
@@ -123,17 +125,31 @@ print_broker_info() {
 
 setup_environment() {
     # Check if virtual environment exists
-    if [ ! -d "${BACKEND_DIR}/venv" ]; then
+    if [ ! -d "${VENV_DIR}" ]; then
         echo -e "${YELLOW}Creating virtual environment...${NC}"
-        python3 -m venv "${BACKEND_DIR}/venv"
+        python3 -m venv "${VENV_DIR}"
     fi
 
-    # Activate venv
-    source "${BACKEND_DIR}/venv/bin/activate"
+    if [ ! -x "${VENV_PYTHON}" ]; then
+        echo -e "${RED}Virtual environment Python not found at ${VENV_PYTHON}${NC}"
+        echo -e "${YELLOW}Install venv support with: sudo apt install python3-venv python3-full${NC}"
+        exit 1
+    fi
+
+    # Ensure pip exists in the virtual environment (Debian/Ubuntu may not seed it by default)
+    if ! "${VENV_PYTHON}" -m pip --version >/dev/null 2>&1; then
+        echo -e "${YELLOW}Bootstrapping pip inside virtual environment...${NC}"
+        "${VENV_PYTHON}" -m ensurepip --upgrade >/dev/null 2>&1 || {
+            echo -e "${RED}Failed to bootstrap pip in virtual environment${NC}"
+            echo -e "${YELLOW}Install: sudo apt install python3-venv python3-full${NC}"
+            exit 1
+        }
+    fi
 
     # Check dependencies
     echo -e "${YELLOW}Checking dependencies...${NC}"
-    pip install paho-mqtt matplotlib numpy -q
+    "${VENV_PYTHON}" -m pip install --upgrade pip -q
+    "${VENV_PYTHON}" -m pip install paho-mqtt matplotlib numpy -q
 
     # Check if C++ engine is built
     if ! ls "${ENGINE_BUILD}/twin_engine_py"*.so 1> /dev/null 2>&1; then
@@ -186,19 +202,19 @@ case $choice in
         echo -e "${GREEN}Launching Dashboard...${NC}"
         echo -e "${YELLOW}Waiting for sensor data from nodes...${NC}"
         cd "${PYTHON_GUI}"
-        python dashboard.py
+        "${VENV_PYTHON}" dashboard.py
         ;;
     2)
         echo ""
         echo -e "${GREEN}Launching Dashboard + Simulator...${NC}"
         echo -e "${YELLOW}(Simulator provides fake sensor data for testing)${NC}"
         cd "${PYTHON_GUI}"
-        python dashboard.py &
+        "${VENV_PYTHON}" dashboard.py &
         DASHBOARD_PID=$!
         sleep 2
         echo ""
         echo -e "${CYAN}Starting MQTT Simulator...${NC}"
-        python "${SCRIPT_DIR}/mqtt_simulator.py" --interval 3
+        "${VENV_PYTHON}" "${SCRIPT_DIR}/mqtt_simulator.py" --interval 3
         # When simulator stops, ask if we should stop dashboard
         echo ""
         read -p "Stop dashboard? [Y/n]: " stop_dashboard
@@ -216,9 +232,9 @@ case $choice in
         duration=${duration:-0}
         
         if [ "$duration" -eq 0 ]; then
-            python "${SCRIPT_DIR}/mqtt_simulator.py" --interval $interval
+            "${VENV_PYTHON}" "${SCRIPT_DIR}/mqtt_simulator.py" --interval $interval
         else
-            python "${SCRIPT_DIR}/mqtt_simulator.py" --interval $interval --duration $duration
+            "${VENV_PYTHON}" "${SCRIPT_DIR}/mqtt_simulator.py" --interval $interval --duration $duration
         fi
         ;;
     4)
@@ -230,13 +246,13 @@ case $choice in
         device=${device:-cpu}
         
         cd "${BACKEND_DIR}/src/digital_twin/pinns/training"
-        python train.py --epochs $epochs --device $device
+        "${VENV_PYTHON}" train.py --epochs $epochs --device $device
         ;;
     5)
         echo ""
         echo -e "${GREEN}Generating PINNs training data...${NC}"
         cd "${BACKEND_DIR}/src/digital_twin/pinns/data"
-        python data_generator.py
+        "${VENV_PYTHON}" data_generator.py
         ;;
     *)
         echo -e "${RED}Invalid choice${NC}"

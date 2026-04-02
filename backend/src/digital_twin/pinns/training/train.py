@@ -13,6 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 import numpy as np
+from typing import Optional, Dict
 
 # Add paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
@@ -22,6 +23,51 @@ import torch
 
 from digital_twin.pinns.models.moisture_pinn import MoisturePINN, MoisturePINNTrainer
 from digital_twin.pinns.data.data_generator import generate_full_dataset
+from digital_twin.pinns.data.kaggle_adapter import load_kaggle_dataset
+
+
+def _to_tensor(data: dict, device: str):
+    return {k: torch.tensor(v, device=device) for k, v in data.items()}
+
+
+def _sample_dict(data: Dict[str, np.ndarray], count: int, seed: int) -> Dict[str, np.ndarray]:
+    n = len(data['u'])
+    if count >= n:
+        return data
+    rng = np.random.default_rng(seed)
+    idx = rng.choice(n, size=count, replace=False)
+    return {k: v[idx] for k, v in data.items()}
+
+
+def _mix_datasets(
+    synth: Dict[str, np.ndarray],
+    kaggle: Dict[str, np.ndarray],
+    kaggle_ratio: float,
+    seed: int,
+) -> Dict[str, np.ndarray]:
+    if kaggle_ratio <= 0.0:
+        return synth
+    if kaggle_ratio >= 1.0:
+        return kaggle
+
+    n_s = len(synth['u'])
+    n_k = len(kaggle['u'])
+    max_final = int(min(n_s / (1.0 - kaggle_ratio), n_k / kaggle_ratio))
+
+    if max_final <= 0:
+        return synth
+
+    take_k = max(1, int(max_final * kaggle_ratio))
+    take_s = max(1, max_final - take_k)
+
+    synth_s = _sample_dict(synth, take_s, seed=seed)
+    kaggle_s = _sample_dict(kaggle, take_k, seed=seed + 1)
+
+    mixed = {
+        k: np.concatenate([synth_s[k], kaggle_s[k]]).astype(np.float32)
+        for k in ['x', 'y', 't', 'T', 'u']
+    }
+    return mixed
 
 
 def train_pinn(
@@ -30,7 +76,10 @@ def train_pinn(
     lr: float = 1e-3,
     lambda_pde: float = 0.1,
     device: str = 'cpu',
-    save_path: Optional[Path] = None
+    save_path: Optional[Path] = None,
+    kaggle_csv: Optional[Path] = None,
+    kaggle_ratio: float = 0.3,
+    seed: int = 42,
 ):
     """
     Train the Moisture PINN.
@@ -42,6 +91,9 @@ def train_pinn(
         lambda_pde: Weight for PDE loss
         device: 'cpu' or 'cuda'
         save_path: Where to save the trained model
+        kaggle_csv: Optional CSV path for Kaggle/real-world data
+        kaggle_ratio: Fraction of Kaggle samples in mixed training data
+        seed: Random seed for deterministic mixing
     """
     print("=" * 70)
     print("  PINN Training for Soil Moisture Prediction")
@@ -54,7 +106,7 @@ def train_pinn(
     print(f"Device: {device}")
     
     # Generate or load dataset
-    data_dir = Path(__file__).parent / "data"
+    data_dir = Path(__file__).resolve().parents[1] / "data"
     train_file = data_dir / "train_data.npz"
     
     if train_file.exists():
@@ -69,13 +121,24 @@ def train_pinn(
         collocation = dataset['collocation']
         boundary = dataset['boundary']
     
-    # Convert to tensors
-    def to_tensor(data: dict, device: str):
-        return {k: torch.tensor(v, device=device) for k, v in data.items()}
-    
-    train_tensors = to_tensor(train_data, device)
-    coll_tensors = to_tensor(collocation, device)
-    bc_tensors = to_tensor(boundary, device)
+    # Optionally blend synthetic + Kaggle data
+    if kaggle_csv is not None:
+        print(f"\nLoading Kaggle dataset from: {kaggle_csv}")
+        kaggle_data = load_kaggle_dataset(kaggle_csv)
+        train_data = _mix_datasets(
+            synth=train_data,
+            kaggle=kaggle_data,
+            kaggle_ratio=kaggle_ratio,
+            seed=seed,
+        )
+        print(
+            f"Mixed training data size: {len(train_data['u']):,} "
+            f"(target Kaggle ratio={kaggle_ratio:.2f})"
+        )
+
+    train_tensors = _to_tensor(train_data, device)
+    coll_tensors = _to_tensor(collocation, device)
+    bc_tensors = _to_tensor(boundary, device)
     
     # Create model
     print("\nCreating PINN model...")
@@ -128,7 +191,7 @@ def train_pinn(
         collocation_points=collocation_points,
         boundary_points=boundary_points,
         epochs=epochs,
-        print_every=epochs // 20
+        print_every=max(1, epochs // 20)
     )
     
     # Save model
@@ -144,6 +207,10 @@ def train_pinn(
             'activation': 'tanh',
             'diffusion_coeff': 0.01,
             'evap_base': 0.001
+        },
+        'training_meta': {
+            'kaggle_ratio': kaggle_ratio,
+            'kaggle_csv': str(kaggle_csv) if kaggle_csv else None,
         }
     }, save_path)
     
@@ -212,13 +279,15 @@ def evaluate_model(model_path: Path):
 
 
 if __name__ == "__main__":
-    from typing import Optional
     
     parser = argparse.ArgumentParser(description="Train PINN for moisture prediction")
     parser.add_argument("--epochs", type=int, default=2000, help="Training epochs")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--lambda-pde", type=float, default=0.1, help="PDE loss weight")
     parser.add_argument("--device", type=str, default="cpu", help="Device (cpu/cuda)")
+    parser.add_argument("--kaggle-csv", type=str, default=None, help="Optional Kaggle CSV file path")
+    parser.add_argument("--kaggle-ratio", type=float, default=0.3, help="Kaggle fraction in mixed training data [0,1]")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed for data mixing")
     parser.add_argument("--eval", type=str, default=None, help="Evaluate model from path")
     
     args = parser.parse_args()
@@ -226,9 +295,18 @@ if __name__ == "__main__":
     if args.eval:
         evaluate_model(Path(args.eval))
     else:
+        kaggle_csv = Path(args.kaggle_csv).expanduser().resolve() if args.kaggle_csv else None
+        if kaggle_csv is not None and not kaggle_csv.exists():
+            raise FileNotFoundError(f"Kaggle CSV not found: {kaggle_csv}")
+        if not 0.0 <= args.kaggle_ratio <= 1.0:
+            raise ValueError("--kaggle-ratio must be between 0 and 1")
+
         train_pinn(
             epochs=args.epochs,
             lr=args.lr,
             lambda_pde=args.lambda_pde,
-            device=args.device
+            device=args.device,
+            kaggle_csv=kaggle_csv,
+            kaggle_ratio=args.kaggle_ratio,
+            seed=args.seed,
         )

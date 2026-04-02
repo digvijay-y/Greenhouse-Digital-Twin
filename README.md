@@ -21,9 +21,7 @@ Greenhouse-Digital-Twin/
 │   │   │   │   ├── src/               # C++ implementation
 │   │   │   │   └── python/            # Python bindings
 │   │   │   ├── models/                # Twin.m simulation model (legacy)
-│   │   │   ├── state_manager/         # Current/predicted state
-│   │   │   ├── anomaly_detection/     # Fault detection
-│   │   │   └── irrigation_engine/     # Automated decisions
+│   │   │   └── pinns/                 # Physics-Informed NN model
 │   │   ├── api/                       # FastAPI/Django routes
 │   │   ├── services/                  # MQTT, Telegram bot
 │   │   └── utils/                     # Helpers, simulators
@@ -183,9 +181,10 @@ The MATLAB model (`moisture_distribution_twin.m`) remains available for visualiz
 - **C++ Engine** - High-performance Laplace solver + What-If simulator with pybind11
 - **Python Integration** - Seamless use from existing MQTT GUI
 - **What-If Dashboard** - Enhanced Tkinter GUI with matplotlib heatmaps and simulation controls
+- **PINN Training Pipeline** - Data generation, training script, and launcher
 
 ## 🔄 In Progress:
-- **PINNs** - Physics-Informed Neural Networks for enhanced prediction
+- **PINNs** - Physics-Informed Neural Networks model tuning and evaluation
 
 ## 📋 ToDo:
 - **Cloud Deployment** - Deploy as web platform
