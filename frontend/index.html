@@ -11,7 +11,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-success">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#">🌱 Greenhouse Digital Twin</a>
+            <a class="navbar-brand" href="#">Greenhouse Digital Twin</a>
             <div class="navbar-nav ms-auto">
                 <span class="navbar-text text-white" id="current-time"></span>
             </div>
@@ -24,7 +24,7 @@
             <div class="col-md-3">
                 <div class="card mb-3">
                     <div class="card-header bg-primary text-white">
-                        <h5>🌡️ Environment</h5>
+                        <h5>Environment</h5>
                     </div>
                     <div class="card-body">
                         <p><strong>Temperature:</strong> <span id="temp">--</span> °C</p>
@@ -35,7 +35,7 @@
                 
                 <div class="card mb-3">
                     <div class="card-header bg-info text-white">
-                        <h5>💧 Soil Moisture</h5>
+                        <h5>Soil Moisture</h5>
                     </div>
                     <div class="card-body">
                         <p><strong>Zone 1:</strong> <span id="moisture1">--</span> %</p>
@@ -47,7 +47,7 @@
 
                 <div class="card mb-3">
                     <div class="card-header bg-warning">
-                        <h5>🧪 NPK Values</h5>
+                        <h5>NPK Values</h5>
                     </div>
                     <div class="card-body">
                         <p><strong>Nitrogen (N):</strong> <span id="npk-n">--</span></p>
@@ -61,7 +61,7 @@
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header bg-success text-white">
-                        <h5>🗺️ Moisture Distribution Map (Digital Twin)</h5>
+                        <h5>Moisture Distribution Map (Digital Twin)</h5>
                     </div>
                     <div class="card-body">
                         <div id="twin-heatmap" style="height: 400px;"></div>
@@ -73,7 +73,7 @@
             <div class="col-md-3">
                 <div class="card mb-3">
                     <div class="card-header bg-danger text-white">
-                        <h5>🚰 Valve Control</h5>
+                        <h5>Valve Control</h5>
                     </div>
                     <div class="card-body">
                         <div class="form-check form-switch mb-2">
@@ -89,13 +89,13 @@
                             <label class="form-check-label" for="valve3">Valve 3 (Zone 4)</label>
                         </div>
                         <hr>
-                        <button class="btn btn-success w-100" id="autoMode">🤖 Auto Mode</button>
+                        <button class="btn btn-success w-100" id="autoMode">Auto Mode</button>
                     </div>
                 </div>
 
                 <div class="card">
                     <div class="card-header bg-secondary text-white">
-                        <h5>📋 System Status</h5>
+                        <h5>System Status</h5>
                     </div>
                     <div class="card-body">
                         <p><strong>MQTT:</strong> <span class="badge bg-success" id="mqtt-status">Connected</span></p>
@@ -111,7 +111,7 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-header bg-dark text-white">
-                        <h5>📈 Moisture History (24h)</h5>
+                        <h5>Moisture History (24h)</h5>
                     </div>
                     <div class="card-body">
                         <div id="history-chart" style="height: 300px;"></div>

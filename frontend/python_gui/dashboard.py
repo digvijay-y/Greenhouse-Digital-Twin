@@ -156,7 +156,7 @@ class EnhancedIrrigationGUI:
         header = ttk.Frame(self.root)
         header.grid(row=0, column=0, columnspan=3, sticky="ew", padx=10, pady=5)
         
-        ttk.Label(header, text="🌱 Greenhouse Digital Twin Dashboard", 
+        ttk.Label(header, text="Greenhouse Digital Twin Dashboard", 
                   font=('Arial', 18, 'bold')).pack(side=tk.LEFT)
         
         self.clock_label = ttk.Label(header, text="", font=('Arial', 12))
@@ -176,7 +176,7 @@ class EnhancedIrrigationGUI:
 
     def create_sensor_panel(self):
         """Create the sensor values panel."""
-        panel = ttk.LabelFrame(self.root, text="📊 Live Sensor Data", padding=10)
+        panel = ttk.LabelFrame(self.root, text="Live Sensor Data", padding=10)
         panel.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         
         # Moisture sensors
@@ -203,9 +203,9 @@ class EnhancedIrrigationGUI:
         ttk.Label(panel, text="Environment", font=('Arial', 12, 'bold')).grid(
             row=7, column=0, columnspan=2, pady=(0, 10))
         
-        env_labels = [("🌡️ Temp:", "temperature", "°C"),
-                      ("💧 Humidity:", "humidity", "%"),
-                      ("📊 Pressure:", "pressure", "hPa")]
+        env_labels = [("Temp:", "temperature", "°C"),
+                  ("Humidity:", "humidity", "%"),
+                  ("Pressure:", "pressure", "hPa")]
         
         for i, (label, var, unit) in enumerate(env_labels):
             ttk.Label(panel, text=label).grid(row=8+i, column=0, sticky="w", pady=3)
@@ -218,7 +218,7 @@ class EnhancedIrrigationGUI:
         ttk.Separator(panel, orient='horizontal').grid(
             row=12, column=0, columnspan=2, sticky="ew", pady=10)
         
-        ttk.Label(panel, text="🧪 NPK:").grid(row=13, column=0, sticky="w")
+        ttk.Label(panel, text="NPK:").grid(row=13, column=0, sticky="w")
         ttk.Entry(panel, textvariable=self.tk_vars["npk"], width=20, state="readonly").grid(
             row=13, column=1, sticky="w", padx=5)
         
@@ -228,7 +228,7 @@ class EnhancedIrrigationGUI:
 
     def create_heatmap_panel(self):
         """Create the 3D moisture distribution surface panel (like MATLAB)."""
-        panel = ttk.LabelFrame(self.root, text="🗺️ Live Moisture Distribution (Digital Twin)", padding=10)
+        panel = ttk.LabelFrame(self.root, text="Live Moisture Distribution (Digital Twin)", padding=10)
         panel.grid(row=1, column=1, sticky="nsew", padx=5, pady=5)
         
         if MATPLOTLIB_AVAILABLE:
@@ -275,7 +275,7 @@ class EnhancedIrrigationGUI:
 
     def create_whatif_panel(self):
         """Create the What-If simulation panel."""
-        panel = ttk.LabelFrame(self.root, text="🔮 What-If Simulation", padding=10)
+        panel = ttk.LabelFrame(self.root, text="What-If Simulation", padding=10)
         panel.grid(row=1, column=2, sticky="nsew", padx=5, pady=5)
         
         # Description
@@ -287,21 +287,21 @@ class EnhancedIrrigationGUI:
         input_frame.pack(fill=tk.X, pady=(0, 10))
         
         # Row 1: Temperature and Water
-        ttk.Label(input_frame, text="🌡️ Temp (°C):").grid(row=0, column=0, sticky="w", padx=2, pady=3)
+        ttk.Label(input_frame, text="Temp (°C):").grid(row=0, column=0, sticky="w", padx=2, pady=3)
         ttk.Entry(input_frame, textvariable=self.sim_temp, width=8).grid(row=0, column=1, padx=2)
         
-        ttk.Label(input_frame, text="💧 Water (ml):").grid(row=1, column=0, sticky="w", padx=2, pady=3)
+        ttk.Label(input_frame, text="Water (ml):").grid(row=1, column=0, sticky="w", padx=2, pady=3)
         ttk.Entry(input_frame, textvariable=self.sim_water, width=8).grid(row=1, column=1, padx=2)
         
         # Row 2: Frequency and Duration
-        ttk.Label(input_frame, text="⏱️ Every (h):").grid(row=2, column=0, sticky="w", padx=2, pady=3)
+        ttk.Label(input_frame, text="Every (h):").grid(row=2, column=0, sticky="w", padx=2, pady=3)
         ttk.Entry(input_frame, textvariable=self.sim_freq, width=8).grid(row=2, column=1, padx=2)
         
-        ttk.Label(input_frame, text="📅 Duration (h):").grid(row=3, column=0, sticky="w", padx=2, pady=3)
+        ttk.Label(input_frame, text="Duration (h):").grid(row=3, column=0, sticky="w", padx=2, pady=3)
         ttk.Entry(input_frame, textvariable=self.sim_duration, width=8).grid(row=3, column=1, padx=2)
         
         # Simulate button - opens popup
-        sim_btn = ttk.Button(panel, text="🔮 Simulate (opens graph)", 
+        sim_btn = ttk.Button(panel, text="Simulate (opens graph)", 
                              command=self.run_simulation)
         sim_btn.pack(fill=tk.X, pady=15)
         
@@ -314,7 +314,7 @@ class EnhancedIrrigationGUI:
         results_label.pack(fill=tk.X, pady=5)
         
         # Quick predictions
-        pred_frame = ttk.LabelFrame(panel, text="⚡ Quick Predictions (auto-updated)", padding=8)
+        pred_frame = ttk.LabelFrame(panel, text="Quick Predictions (auto-updated)", padding=8)
         pred_frame.pack(fill=tk.X, pady=10)
         
         self.pred_24h = tk.StringVar(value="24h: Waiting for data...")
@@ -324,7 +324,7 @@ class EnhancedIrrigationGUI:
         ttk.Label(pred_frame, textvariable=self.pred_48h, font=('Arial', 9)).pack(anchor='w', pady=2)
         
         # Current values display
-        curr_frame = ttk.LabelFrame(panel, text="📊 Current Readings", padding=8)
+        curr_frame = ttk.LabelFrame(panel, text="Current Readings", padding=8)
         curr_frame.pack(fill=tk.X, pady=10)
         
         self.current_avg = tk.StringVar(value="Avg: -")
@@ -429,11 +429,11 @@ class EnhancedIrrigationGUI:
     def run_simulation(self):
         """Run the What-If simulation and show PREDICTED 3D surface in popup."""
         if not self.engine:
-            self.sim_results.set("❌ Engine not available. Build it first!")
+            self.sim_results.set("Engine not available. Build it first.")
             return
         
         if not MATPLOTLIB_AVAILABLE:
-            self.sim_results.set("❌ matplotlib not available for plotting")
+            self.sim_results.set("matplotlib not available for plotting")
             return
         
         from mpl_toolkits.mplot3d import Axes3D
@@ -472,7 +472,7 @@ class EnhancedIrrigationGUI:
         
         # Create popup window - PREDICTED 3D Surface (Digital Twin)
         popup = tk.Toplevel(self.root)
-        popup.title(f"🔮 Predicted State: After {duration}h @ {temperature}°C")
+        popup.title(f"Predicted State: After {duration}h @ {temperature}°C")
         popup.geometry("800x650")
         popup.transient(self.root)
         
@@ -531,7 +531,7 @@ class EnhancedIrrigationGUI:
         ttk.Button(popup, text="Close", command=popup.destroy).pack(pady=5)
         
         # Update main panel summary
-        summary = f"✅ Simulated! ({duration}h, {result['total_watering_events']} waterings)\n"
+        summary = f"Simulated ({duration}h, {result['total_watering_events']} waterings)\n"
         for zone_id, zone_data in result['zones'].items():
             change = zone_data['final_moisture'] - zone_data['initial_moisture']
             arrow = "↑" if change > 0 else "↓"
@@ -569,11 +569,11 @@ class EnhancedIrrigationGUI:
         self.current_avg.set(f"Avg moisture: {avg_current:.1f}%")
         
         if avg_current < 30:
-            self.current_status.set("Status: ⚠️ Too Dry - Irrigate!")
+            self.current_status.set("Status: Too Dry - Irrigate")
         elif avg_current > 70:
-            self.current_status.set("Status: ⚠️ Too Wet - Stop watering")
+            self.current_status.set("Status: Too Wet - Stop watering")
         else:
-            self.current_status.set("Status: ✅ Optimal Range")
+            self.current_status.set("Status: Optimal Range")
 
     def save_data_to_db(self):
         """Save sensor data to database."""
@@ -615,8 +615,8 @@ class EnhancedIrrigationGUI:
         self.clock_label.config(text=now.strftime("%d %b %Y | %I:%M:%S %p"))
         
         # Update status
-        status = "🟢 MQTT" if self.mqtt_connected else "🔴 MQTT"
-        status += " | 🟢 Engine" if ENGINE_AVAILABLE else " | 🔴 Engine"
+        status = "MQTT: Connected" if self.mqtt_connected else "MQTT: Disconnected"
+        status += " | Engine: Available" if ENGINE_AVAILABLE else " | Engine: Unavailable"
         self.status_label.config(text=status)
         
         self.root.after(1000, self.update_clock)
