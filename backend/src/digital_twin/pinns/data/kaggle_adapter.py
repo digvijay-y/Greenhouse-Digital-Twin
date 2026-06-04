@@ -34,6 +34,17 @@ def load_kaggle_dataset(csv_path: Path, seed: int = 42) -> Dict[str, np.ndarray]
     Optional: temperature, timestamp/time, x/y or lat/lon.
     Missing optional fields are synthesized safely.
     """
+    csv_path = Path(csv_path)
+
+    # Support pre-converted NPZ files as well as CSV input.
+    if csv_path.suffix.lower() == ".npz":
+        arr = np.load(csv_path)
+        required = ("x", "y", "t", "T", "u")
+        if all(k in arr for k in required):
+            return {k: arr[k].astype(np.float32) for k in required}
+        else:
+            raise ValueError(f"NPZ at {csv_path} missing required arrays {required}")
+
     df = pd.read_csv(csv_path)
     if df.empty:
         raise ValueError(f"CSV has no rows: {csv_path}")

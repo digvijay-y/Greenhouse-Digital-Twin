@@ -18,7 +18,7 @@ Where:
 import torch
 import torch.nn as nn
 import numpy as np
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable, Dict
 
 
 class MoisturePINN(nn.Module):
@@ -289,6 +289,7 @@ class MoisturePINNTrainer:
         collocation_points: Tuple[torch.Tensor, ...],
         epochs: int = 1000,
         print_every: int = 100,
+        epoch_callback: Optional[Callable[[int, Dict[str, float]], None]] = None,
         **kwargs
     ):
         """
@@ -306,7 +307,16 @@ class MoisturePINNTrainer:
         for epoch in range(epochs):
             loss_dict = self.train_step(data_points, collocation_points, **kwargs)
             self.scheduler.step(loss_dict['total'])
-            
+
+            # Optional epoch callback (e.g., logging to file / external monitor)
+            try:
+                if epoch_callback is not None:
+                    # Provide 1-based epoch index to callback
+                    epoch_callback(epoch + 1, loss_dict)
+            except Exception:
+                # Do not interrupt training for callback errors
+                pass
+
             if (epoch + 1) % print_every == 0:
                 lr = self.optimizer.param_groups[0]['lr']
                 print(f"Epoch {epoch+1:5d} | "

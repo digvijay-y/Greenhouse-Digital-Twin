@@ -166,6 +166,16 @@ $$\eta_{\text{new}} = \gamma \cdot \eta_{\text{old}}, \quad \gamma = 0.5$$
 
 Prevents overfitting and allows finer optimization phases.
 
+### Fast Local Run
+
+If you only need a small end-to-end run on a CPU, use the fast preset:
+
+```bash
+python training/train.py --fast --epochs 1 --device cpu
+```
+
+This switches to a smaller synthetic dataset, skips the C++ engine, and uses a narrower network so you can get a working checkpoint quickly rather than optimizing for accuracy.
+
 ---
 
 ## Data Generation Pipeline

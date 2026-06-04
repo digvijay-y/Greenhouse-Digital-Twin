@@ -319,7 +319,13 @@ class SyntheticDataGenerator:
 def generate_full_dataset(
     output_dir: Optional[Path] = None,
     n_steady_samples: int = 100,
-    n_trajectories: int = 20
+    n_trajectories: int = 20,
+    grid_size: int = 50,
+    n_collocation_points: int = 10000,
+    n_boundary_points_per_edge: int = 50,
+    n_boundary_time_samples: int = 10,
+    use_engine: bool = True,
+    seed: Optional[int] = None,
 ) -> Dict[str, Dict[str, np.ndarray]]:
     """
     Generate a complete dataset for PINN training.
@@ -327,11 +333,14 @@ def generate_full_dataset(
     Returns:
         Dictionary with 'train', 'collocation', 'boundary' data
     """
+    if seed is not None:
+        np.random.seed(seed)
+
     print("=" * 60)
     print("Generating PINN Training Dataset")
     print("=" * 60)
     
-    generator = SyntheticDataGenerator(grid_size=50, use_engine=True)
+    generator = SyntheticDataGenerator(grid_size=grid_size, use_engine=use_engine)
     
     print("\n1. Generating steady-state samples...")
     steady_data = generator.generate_steady_state_samples(n_samples=n_steady_samples)
@@ -340,10 +349,13 @@ def generate_full_dataset(
     temporal_data = generator.generate_time_series_samples(n_trajectories=n_trajectories)
     
     print("\n3. Generating collocation points...")
-    collocation = generator.generate_collocation_points(n_points=10000)
+    collocation = generator.generate_collocation_points(n_points=n_collocation_points)
     
     print("\n4. Generating boundary conditions...")
-    boundary = generator.generate_boundary_conditions()
+    boundary = generator.generate_boundary_conditions(
+        n_points_per_edge=n_boundary_points_per_edge,
+        n_time_samples=n_boundary_time_samples,
+    )
     
     # Combine steady and temporal data
     train_data = {

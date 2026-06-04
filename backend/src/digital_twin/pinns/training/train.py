@@ -13,7 +13,7 @@ import argparse
 import sys
 from pathlib import Path
 import numpy as np
-from typing import Optional, Dict
+from typing import Optional, Dict, List
 
 # Add paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent.parent.parent
@@ -71,7 +71,7 @@ def _mix_datasets(
 
 
 def train_pinn(
-    epochs: int = 2000,
+    epochs: Optional[int] = None,
     batch_size: int = 2048,
     lr: float = 1e-3,
     lambda_pde: float = 0.1,
@@ -80,6 +80,15 @@ def train_pinn(
     kaggle_csv: Optional[Path] = None,
     kaggle_ratio: float = 0.3,
     seed: int = 42,
+    fast_mode: bool = False,
+    n_steady_samples: int = 100,
+    n_trajectories: int = 20,
+    grid_size: int = 50,
+    n_collocation_points: int = 10000,
+    n_boundary_points_per_edge: int = 50,
+    n_boundary_time_samples: int = 10,
+    use_engine: bool = True,
+    hidden_layers: Optional[List[int]] = None,
 ):
     """
     Train the Moisture PINN.
@@ -104,19 +113,42 @@ def train_pinn(
         print("⚠️ CUDA not available, falling back to CPU")
         device = 'cpu'
     print(f"Device: {device}")
+
+    if fast_mode:
+        n_steady_samples = min(n_steady_samples, 12)
+        n_trajectories = min(n_trajectories, 3)
+        grid_size = min(grid_size, 20)
+        n_collocation_points = min(n_collocation_points, 1000)
+        n_boundary_points_per_edge = min(n_boundary_points_per_edge, 20)
+        n_boundary_time_samples = min(n_boundary_time_samples, 4)
+        use_engine = False
+        if hidden_layers is None:
+            hidden_layers = [32, 64, 64, 32]
+
+    epochs = epochs if epochs is not None else (200 if fast_mode else 2000)
     
     # Generate or load dataset
     data_dir = Path(__file__).resolve().parents[1] / "data"
     train_file = data_dir / "train_data.npz"
     
-    if train_file.exists():
+    if train_file.exists() and not fast_mode:
         print("\nLoading existing dataset...")
         train_data = dict(np.load(train_file))
         collocation = dict(np.load(data_dir / "collocation_data.npz"))
         boundary = dict(np.load(data_dir / "boundary_data.npz"))
     else:
         print("\nGenerating new dataset...")
-        dataset = generate_full_dataset(output_dir=data_dir)
+        dataset = generate_full_dataset(
+            output_dir=data_dir,
+            n_steady_samples=n_steady_samples,
+            n_trajectories=n_trajectories,
+            grid_size=grid_size,
+            n_collocation_points=n_collocation_points,
+            n_boundary_points_per_edge=n_boundary_points_per_edge,
+            n_boundary_time_samples=n_boundary_time_samples,
+            use_engine=use_engine,
+            seed=seed,
+        )
         train_data = dataset['train']
         collocation = dataset['collocation']
         boundary = dataset['boundary']
@@ -142,8 +174,9 @@ def train_pinn(
     
     # Create model
     print("\nCreating PINN model...")
+    model_hidden_layers = hidden_layers or [64, 128, 128, 64]
     model = MoisturePINN(
-        hidden_layers=[64, 128, 128, 64],
+        hidden_layers=model_hidden_layers,
         activation='tanh',
         diffusion_coeff=0.01,
         evap_base=0.001
@@ -203,7 +236,7 @@ def train_pinn(
         'model_state_dict': model.state_dict(),
         'losses': trainer.losses,
         'config': {
-            'hidden_layers': [64, 128, 128, 64],
+            'hidden_layers': model_hidden_layers,
             'activation': 'tanh',
             'diffusion_coeff': 0.01,
             'evap_base': 0.001
@@ -211,6 +244,14 @@ def train_pinn(
         'training_meta': {
             'kaggle_ratio': kaggle_ratio,
             'kaggle_csv': str(kaggle_csv) if kaggle_csv else None,
+            'fast_mode': fast_mode,
+            'n_steady_samples': n_steady_samples,
+            'n_trajectories': n_trajectories,
+            'grid_size': grid_size,
+            'n_collocation_points': n_collocation_points,
+            'n_boundary_points_per_edge': n_boundary_points_per_edge,
+            'n_boundary_time_samples': n_boundary_time_samples,
+            'use_engine': use_engine,
         }
     }, save_path)
     
@@ -281,13 +322,22 @@ def evaluate_model(model_path: Path):
 if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Train PINN for moisture prediction")
-    parser.add_argument("--epochs", type=int, default=2000, help="Training epochs")
+    parser.add_argument("--epochs", type=int, default=None, help="Training epochs")
     parser.add_argument("--lr", type=float, default=1e-3, help="Learning rate")
     parser.add_argument("--lambda-pde", type=float, default=0.1, help="PDE loss weight")
     parser.add_argument("--device", type=str, default="cpu", help="Device (cpu/cuda)")
     parser.add_argument("--kaggle-csv", type=str, default=None, help="Optional Kaggle CSV file path")
     parser.add_argument("--kaggle-ratio", type=float, default=0.3, help="Kaggle fraction in mixed training data [0,1]")
     parser.add_argument("--seed", type=int, default=42, help="Random seed for data mixing")
+    parser.add_argument("--fast", action="store_true", help="Use a smaller dataset and model for a quick run")
+    parser.add_argument("--no-engine", action="store_true", help="Skip the C++ engine and use the lightweight synthetic fallback")
+    parser.add_argument("--n-steady-samples", type=int, default=None, help="Override steady-state sample count")
+    parser.add_argument("--n-trajectories", type=int, default=None, help="Override time-series trajectory count")
+    parser.add_argument("--grid-size", type=int, default=None, help="Override synthetic grid size")
+    parser.add_argument("--n-collocation-points", type=int, default=None, help="Override PDE collocation point count")
+    parser.add_argument("--n-boundary-points-per-edge", type=int, default=None, help="Override boundary sample count per edge")
+    parser.add_argument("--n-boundary-time-samples", type=int, default=None, help="Override boundary time sample count")
+    parser.add_argument("--hidden-layers", type=int, nargs="*", default=None, help="Override hidden layer sizes, e.g. --hidden-layers 32 64 64 32")
     parser.add_argument("--eval", type=str, default=None, help="Evaluate model from path")
     
     args = parser.parse_args()
@@ -301,12 +351,31 @@ if __name__ == "__main__":
         if not 0.0 <= args.kaggle_ratio <= 1.0:
             raise ValueError("--kaggle-ratio must be between 0 and 1")
 
+        fast_mode = args.fast
+        epochs = args.epochs if args.epochs is not None else (200 if fast_mode else 2000)
+        n_steady_samples = args.n_steady_samples if args.n_steady_samples is not None else (12 if fast_mode else 100)
+        n_trajectories = args.n_trajectories if args.n_trajectories is not None else (3 if fast_mode else 20)
+        grid_size = args.grid_size if args.grid_size is not None else (20 if fast_mode else 50)
+        n_collocation_points = args.n_collocation_points if args.n_collocation_points is not None else (1000 if fast_mode else 10000)
+        n_boundary_points_per_edge = args.n_boundary_points_per_edge if args.n_boundary_points_per_edge is not None else (20 if fast_mode else 50)
+        n_boundary_time_samples = args.n_boundary_time_samples if args.n_boundary_time_samples is not None else (4 if fast_mode else 10)
+        use_engine = not args.no_engine and not fast_mode
+
         train_pinn(
-            epochs=args.epochs,
+            epochs=epochs,
             lr=args.lr,
             lambda_pde=args.lambda_pde,
             device=args.device,
             kaggle_csv=kaggle_csv,
             kaggle_ratio=args.kaggle_ratio,
             seed=args.seed,
+            fast_mode=fast_mode,
+            n_steady_samples=n_steady_samples,
+            n_trajectories=n_trajectories,
+            grid_size=grid_size,
+            n_collocation_points=n_collocation_points,
+            n_boundary_points_per_edge=n_boundary_points_per_edge,
+            n_boundary_time_samples=n_boundary_time_samples,
+            use_engine=use_engine,
+            hidden_layers=args.hidden_layers,
         )
